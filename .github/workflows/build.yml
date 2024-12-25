@@ -1,0 +1,52 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  IMAGE_NAME: tmatwood/gitlab-runner-base
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.10.0
+        with:
+          versionSpec: '5.x'
+
+      - name: Get version and short SHA
+        id: version
+        run: |
+          echo "VERSION=$(gitversion /showvariable FullSemVer)" >> $GITHUB_ENV
+          echo "SHORTSHA=$(gitversion /showvariable ShortSha)" >> $GITHUB_ENV
+
+      - name: Log version
+        run: echo "Building version ${{ env.VERSION }}-${{ env.SHORTSHA }}."
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        run: |
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            -t ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }} . \
+            --push
+          docker tag ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }} ${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }}
+          docker push ${{ env.IMAGE_NAME }}:latest
