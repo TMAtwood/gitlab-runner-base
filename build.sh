@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=$(gitversion /showvariable FullSemVer)
+VERSION=$(gitversion /showvariable MajorMinorPatch)
 SHORTSHA=$(gitversion /showvariable ShortSha)
 
 IMAGE="tmatwood/gitlab-runner-base"

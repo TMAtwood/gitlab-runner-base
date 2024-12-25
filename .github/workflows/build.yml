@@ -29,7 +29,7 @@ jobs:
       - name: Get version and short SHA
         id: version
         run: |
-          echo "VERSION=$(gitversion /showvariable FullSemVer)" >> $GITHUB_ENV
+          echo "VERSION=$(gitversion /showvariable MajorMinorPatch)" >> $GITHUB_ENV
           echo "SHORTSHA=$(gitversion /showvariable ShortSha)" >> $GITHUB_ENV
 
       - name: Log version
