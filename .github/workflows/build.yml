@@ -26,31 +26,34 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 3. Install GitVersion
+      # 3. Setup Homebrew
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+          
+      # 4. Install GitVersion
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v3.1.1
-        with:
-          versionSpec: '6.0.x'
-
-      # 4. Get Version and Short SHA
+        run: brew install gitversion
+      
+      # 5. Get Version and Short SHA
       - name: Get version and short SHA
         id: version
         run: |
           echo "VERSION=$(gitversion /showvariable MajorMinorPatch)" >> $GITHUB_ENV
           echo "SHORTSHA=$(gitversion /showvariable ShortSha)" >> $GITHUB_ENV
 
-      # 5. Log Version
+      # 6. Log Version
       - name: Log version
         run: echo "Building version ${{ env.VERSION }}-${{ env.SHORTSHA }}."
 
-      # 6. Log in to Docker Hub
+      # 7. Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 7. Build Docker Image (Without Pushing)
+      # 8. Build Docker Image (Without Pushing)
       - name: Build Docker image
         run: |
           docker buildx build \
@@ -58,7 +61,7 @@ jobs:
             -t ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }} . \
             --load
 
-      # 8. Run Container Structure Tests
+      # 9. Run Container Structure Tests
       - name: Run Container Structure Tests
         run: |
           docker run --rm \
@@ -68,7 +71,7 @@ jobs:
             --image ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }} \
             --config /tests.yml
 
-      # 9. Push Docker Image (Only if Tests Pass)
+      # 10. Push Docker Image (Only if Tests Pass)
       - name: Push Docker image
         run: |
           docker buildx build \
