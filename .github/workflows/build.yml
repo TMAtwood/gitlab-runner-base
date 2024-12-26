@@ -31,8 +31,6 @@ jobs:
         uses: gittools/actions/gitversion/setup@v3.1.1
         with:
           versionSpec: '6.0.x'
-      - name: Run GitVersion
-        run: gitversion
 
       # 4. Get Version and Short SHA
       - name: Get version and short SHA
