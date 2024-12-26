@@ -1,3 +1,4 @@
+---
 name: Build and Push Docker Image
 
 on:
@@ -17,7 +18,9 @@ jobs:
     steps:
       # 1. Checkout Code
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # 2. Set Up Docker Buildx
       - name: Set up Docker Buildx
@@ -25,16 +28,9 @@ jobs:
 
       # 3. Install GitVersion
       - name: Install GitVersion
-        uses: actions/checkout@v1.0.0
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v1
-
-      - name: Setup GitVersion
-        uses: actions/setup-gitversion@v1.0.0
+        uses: gittools/actions/gitversion/setup@v3.1.1
         with:
-          gitversion-version: 6.1.0
-
+          versionSpec: '6.x.x'
       - name: Run GitVersion
         run: gitversion
 
