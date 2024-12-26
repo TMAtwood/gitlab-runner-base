@@ -1,0 +1,60 @@
+---
+schemaVersion: 2.0.0
+
+fileContentTests:
+  - name: "Verify sudoers entry for gitlab-runner"
+    path: "/etc/sudoers"
+    expectedContents: 
+      - "gitlab-runner ALL=\\(ALL\\) NOPASSWD:ALL"
+  - name: "Verify gitlab-runner user in /etc/passwd"
+    path: "/etc/passwd"
+    expectedContents:
+      - "gitlab-runner:x"
+  - name: "Verify gitlab-runner group in /etc/group"
+    path: "/etc/group"
+    expectedContents:
+      - "gitlab-runner:x"
+
+commandTests:
+  - name:  "apt-get upgrade"
+    command: "apt-get"
+    args: ["-qqs", "upgrade"]
+    excludedOutput: [".*Inst.*Security.* | .*Security.*Inst.*"]
+    excludedError: [".*Inst.*Security.* | .*Security.*Inst.*"]
+  - name: "Verify curl installation"
+    command: "which"
+    args: ["curl"]
+    expectedOutput: ["/usr/bin/curl"]
+  - name: "Verify gnupg installation"
+    command: "which"
+    args: ["gitlab-runner"]
+    expectedOutput: ["/usr/bin/gitlab-runner"]
+  - name: "Verify sudo installation"
+    command: "which"
+    args: ["gpg"]
+    expectedOutput: ["/usr/bin/gpg"]
+  - name: "Verify gitlab-runner installation"
+    command: "which"
+    args: ["gitlab-runner"]
+    expectedOutput: ["/usr/bin/gitlab-runner"]
+
+metadataTest:
+  labels:
+    - key: "org.opencontainers.image.authors"
+      value: "Thomas M. Atwood"
+    - key: "org.opencontainers.image.description"
+      value: "A base image for a GitLab Runner with minimal dependencies installed."
+    - key: "org.opencontainers.image.version"
+      value: "1.0.0"
+
+fileExistenceTests:
+  - name: "Check /etc/sudoers file exists"
+    path: "/etc/sudoers"
+  - name: "Check /etc/passwd file exists"
+    path: "/etc/passwd"
+  - name: "ca-certificates file exists"
+    path: "/etc/ssl/certs/ca-certificates.crt"
+  - name: "apt-transport-https method exists"
+    path: "/usr/lib/apt/methods/https"
+  - name: "gnupg gpg executable exists"
+    path: "/usr/bin/gpg"
