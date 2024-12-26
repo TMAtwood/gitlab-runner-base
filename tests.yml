@@ -4,7 +4,7 @@ schemaVersion: 2.0.0
 fileContentTests:
   - name: "Verify sudoers entry for gitlab-runner"
     path: "/etc/sudoers"
-    expectedContents: 
+    expectedContents:
       - "gitlab-runner ALL=\\(ALL\\) NOPASSWD:ALL"
   - name: "Verify gitlab-runner user in /etc/passwd"
     path: "/etc/passwd"
@@ -16,7 +16,7 @@ fileContentTests:
       - "gitlab-runner:x"
 
 commandTests:
-  - name:  "apt-get upgrade"
+  - name: "apt-get upgrade"
     command: "apt-get"
     args: ["-qqs", "upgrade"]
     excludedOutput: [".*Inst.*Security.* | .*Security.*Inst.*"]

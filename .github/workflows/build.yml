@@ -1,3 +1,4 @@
+---
 name: Build and Push Docker Image
 
 on:
@@ -17,61 +18,80 @@ jobs:
     steps:
       # 1. Checkout Code
       - name: Checkout code
-        uses: actions/checkout@v3
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # 2. Set Up Docker Buildx
+      # 2. This step sets up Docker Buildx, a Docker command-line interface (CLI) plug-in for building multi-architecture images.
       - name: Set up Docker Buildx
+        id: install_buildx
         uses: docker/setup-buildx-action@v3
 
-      # 3. Install GitVersion
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.10.0
-        with:
-          versionSpec: '5.x'
+      # 3. Setup QEMU for multi-architecture builds on amd64 host machines
+      - name: Set up QEMU
+        id: install_qemu
+        uses: docker/setup-qemu-action@v3
 
-      # 4. Get Version and Short SHA
+      # 4. Setup Homebrew
+      - name: Set up Homebrew
+        id: install_homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+          
+      # 5. Install GitVersion
+      - name: Install GitVersion
+        id: install_gitversion
+        run: brew install gitversion
+
+      # 6. Install container-structure-test
+      - name: Install Container Structure Test
+        id: install_container_structure_test
+        run: brew install container-structure-test
+      
+      # 7. Get Version and Short SHA
       - name: Get version and short SHA
-        id: version
+        id: output_version
         run: |
           echo "VERSION=$(gitversion /showvariable MajorMinorPatch)" >> $GITHUB_ENV
           echo "SHORTSHA=$(gitversion /showvariable ShortSha)" >> $GITHUB_ENV
 
-      # 5. Log Version
+      # 8. Log Version
       - name: Log version
+        id: log_version
         run: echo "Building version ${{ env.VERSION }}-${{ env.SHORTSHA }}."
 
-      # 6. Log in to Docker Hub
+      # 9. Log in to Docker Hub
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        id: login_dockerhub
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 7. Build Docker Image (Without Pushing)
-      - name: Build Docker image
-        run: |
-          docker buildx build \
-            --platform linux/amd64,linux/arm64 \
-            -t ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }} . \
-            --load
+      # 10. Docker build
+      - name: Docker Build
+        id: docker_build
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }}
+            ${{ env.IMAGE_NAME }}:latest
+        env:
+          IMAGE: $IMAGE_NAME
 
-      # 8. Run Container Structure Tests
-      - name: Run Container Structure Tests
-        run: |
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v ${{ github.workspace }}/tests.yml:/tests.yml \
-            gcr.io/container-structure-test/container-structure-test:latest test \
-            --image ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }} \
-            --config /tests.yml
-
-      # 9. Push Docker Image (Only if Tests Pass)
-      - name: Push Docker image
-        run: |
-          docker buildx build \
-            --platform linux/amd64,linux/arm64 \
-            -t ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }} . \
-            --push
-          docker tag ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }} ${{ env.IMAGE_NAME }}:latest
-          docker push ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }}
-          docker push ${{ env.IMAGE_NAME }}:latest
+      # 11. I need to write my own container-structure-test action, as Marketplace options suck.
+      
+      # 12. Push images if tests pass
+      - name: Push Docker images
+        id: push_images
+        if: success()  # This ensures this step runs only if the previous test step is successful
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          push: true  # Push the image to the registry
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }}
+            ${{ env.IMAGE_NAME }}:latest
+        
