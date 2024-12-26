@@ -25,16 +25,25 @@ jobs:
 
       # 3. Install GitVersion
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.10.0
+        uses: actions/checkout@v1.0.0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+
+      - name: Setup GitVersion
+        uses: actions/setup-gitversion@v1.0.0
         with:
-          versionSpec: '6.x'
+          gitversion-version: 6.1.0
+
+      - name: Run GitVersion
+        run: gitversion
 
       # 4. Get Version and Short SHA
       - name: Get version and short SHA
         id: version
         run: |
-          echo "VERSION=$(dotnet-gitversion /showvariable MajorMinorPatch)" >> $GITHUB_ENV
-          echo "SHORTSHA=$(dotnet-gitversion /showvariable ShortSha)" >> $GITHUB_ENV
+          echo "VERSION=$(gitversion /showvariable MajorMinorPatch)" >> $GITHUB_ENV
+          echo "SHORTSHA=$(gitversion /showvariable ShortSha)" >> $GITHUB_ENV
 
       # 5. Log Version
       - name: Log version
