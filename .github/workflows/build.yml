@@ -84,7 +84,7 @@ jobs:
       # 11. Container Structure Test
       - name: Run Container Structure Test
         id: run_tests
-        uses: lexsystems/container-structure-test-action@v0.3.0
+        uses: plexsystems/container-structure-test-action@v0.3.0
         with:
           image: ${{ steps.docker_build.outputs.IMAGE }}  # Reference the image name from the previous step
           config: tests.yml
