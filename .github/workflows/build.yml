@@ -79,15 +79,15 @@ jobs:
             ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }}
             ${{ env.IMAGE_NAME }}:latest
         env:
-          IMAGE: $IMAGE_NAME
+          IMAGE: $IMAGE_NAME:latest
 
       # 11. Container Structure Test
       - name: Run Container Structure Test
         id: run_tests
-        uses: brpaz/structure-tests-action@v1.1.2
+        uses: lexsystems/container-structure-test-action@v0.3.0
         with:
-          image: ${{ steps.docker_build.outputs.image }}  # Reference the image name from the previous step
-          configFile: tests.yml
+          image: ${{ steps.docker_build.outputs.IMAGE }}  # Reference the image name from the previous step
+          config: tests.yml
           
       # 12. Push images if tests pass
       - name: Push Docker images
