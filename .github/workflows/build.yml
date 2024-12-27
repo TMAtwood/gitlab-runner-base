@@ -57,6 +57,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # 8. Docker build
       - name: Docker Build
         uses: docker/build-push-action@v6
         with:
@@ -68,7 +69,11 @@ jobs:
       - name: Install Container-Structure-Test
         run: brew install container-structure-test
 
-      # 9. Run container structure tests
+      # 9. Run container structure tests using the bash script in the project root
+      - name: Container Structure Tests
+        run: run_tests.sh
+        
+      # 10. Run container structure tests
       - name: Container Structure Tests
         uses: brpaz/structure-tests-action@v1.1.2
         with:
@@ -77,7 +82,7 @@ jobs:
           # Path to the config file
           configFile: tests.yml # optional, default is structure-tests.yaml
           
-      # 10. Push Docker Image (Only if Tests Pass)
+      # 11. Push Docker Image (Only if Tests Pass)
       - name: Push Docker image
         run: |
           docker tag ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }} ${{ env.IMAGE_NAME }}:latest
