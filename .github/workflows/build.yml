@@ -70,7 +70,7 @@ jobs:
           
       # 9. Run Container Structure Tests
       - name: Run Container Structure Tests
-        run: container-structure-test test --image ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }} --config tests.yaml
+        run: container-structure-test test --image ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }} --config tests.yml
 
       # 10. Push Docker Image (Only if Tests Pass)
       - name: Push Docker image
