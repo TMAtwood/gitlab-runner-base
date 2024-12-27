@@ -22,27 +22,31 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 2. Set Up Docker Buildx
+      # 2. This step sets up Docker Buildx, a Docker command-line interface (CLI) plug-in for building multi-architecture images.
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 3. Setup Homebrew
+      # 3. Setup QEMU for multi-architecture builds on amd64 host machines
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      # 4. Setup Homebrew
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
           
-      # 4. Install GitVersion
+      # 5. Install GitVersion
       - name: Install GitVersion
         run: brew install gitversion
       
-      # 5. Get Version and Short SHA
+      # 6. Get Version and Short SHA
       - name: Get version and short SHA
         id: version
         run: |
           echo "VERSION=$(gitversion /showvariable MajorMinorPatch)" >> $GITHUB_ENV
           echo "SHORTSHA=$(gitversion /showvariable ShortSha)" >> $GITHUB_ENV
 
-      # 6. Log Version
+      # 7. Log Version
       - name: Log version
         run: echo "Building version ${{ env.VERSION }}-${{ env.SHORTSHA }}."
 
@@ -53,15 +57,13 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 8.  Create multi-archtectural image
-      - name: Build multi-architecture image
-        run: |
-          docker buildx create --use
-          docker buildx build \
-            --platform linux/amd64,linux/arm64 \
-            -t ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }} \
-            --load .
-
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }}
+          
       # 9. Run Container Structure Tests
       - name: Run Container Structure Tests
         run: |
