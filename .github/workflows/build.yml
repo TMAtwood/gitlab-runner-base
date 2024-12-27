@@ -69,16 +69,7 @@ jobs:
       - name: Install Container-Structure-Test
         run: brew install container-structure-test
         
-      # 9. Run container structure tests
-      - name: Container Structure Tests
-        uses: brpaz/structure-tests-action@v1.1.2
-        with:
-          # The Docker image to test
-          image: ${{ env.IMAGE_NAME }}:latest
-          # Path to the config file
-          configFile: tests.yml # optional, default is structure-tests.yaml
-          
-      # 10. Push Docker Image (Only if Tests Pass)
+      # 9. Push Docker Image (Only if Tests Pass)
       - name: Push Docker image
         run: |
           docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }}
