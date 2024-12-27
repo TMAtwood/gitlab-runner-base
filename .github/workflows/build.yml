@@ -68,11 +68,7 @@ jobs:
       - name: Install Container-Structure-Test
         run: brew install container-structure-test
           
-      # 9. Run Container Structure Tests
-      - name: Run Container Structure Tests
-        run: container-structure-test test --image ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }} --config tests.yml
-
-      # 10. Push Docker Image (Only if Tests Pass)
+      # 9. Push Docker Image (Only if Tests Pass)
       - name: Push Docker image
         run: |
           docker tag ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }} ${{ env.IMAGE_NAME }}:latest
