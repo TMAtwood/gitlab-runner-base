@@ -88,6 +88,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true  # Push the image to the registry
           tags: |
-            ${{ env.IMAGE_NAME }}:${{ github.ref_name }}-${{ github.sha::8 }}
+            ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }}
             ${{ env.IMAGE_NAME }}:latest
         
