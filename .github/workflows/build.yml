@@ -81,14 +81,8 @@ jobs:
         env:
           IMAGE: $IMAGE_NAME
 
-      # 11. Container Structure Test
-      - name: Run Container Structure Test
-        id: run_tests
-        uses: plexsystems/container-structure-test-action@v0.3.0
-        with:
-          image: ${{ steps.docker_build.outputs.image }}  # Reference the image name from the previous step
-          config: tests.yml
-          
+      # 11. I need to write my own container-structure-test action, as Marketplace options suck.
+      
       # 12. Push images if tests pass
       - name: Push Docker images
         id: push_images
