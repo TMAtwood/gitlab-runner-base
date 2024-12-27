@@ -18,51 +18,59 @@ jobs:
     steps:
       # 1. Checkout Code
       - name: Checkout code
+        id: checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       # 2. This step sets up Docker Buildx, a Docker command-line interface (CLI) plug-in for building multi-architecture images.
       - name: Set up Docker Buildx
+        id: install_buildx
         uses: docker/setup-buildx-action@v3
 
       # 3. Setup QEMU for multi-architecture builds on amd64 host machines
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        id: install_qemu
+        uses: docker/setup-qemu-action@v3
 
       # 4. Setup Homebrew
       - name: Set up Homebrew
-        id: set-up-homebrew
+        id: install_homebrew
         uses: Homebrew/actions/setup-homebrew@master
           
       # 5. Install GitVersion
       - name: Install GitVersion
+        id: install_gitversion
         run: brew install gitversion
 
       # 6. Install container-structure-test
-      - name: Install Container-Structure-Test
+      - name: Install Container Structure Test
+        id: install_container_structure_test
         run: brew install container-structure-test
       
       # 7. Get Version and Short SHA
       - name: Get version and short SHA
-        id: version
+        id: output_version
         run: |
           echo "VERSION=$(gitversion /showvariable MajorMinorPatch)" >> $GITHUB_ENV
           echo "SHORTSHA=$(gitversion /showvariable ShortSha)" >> $GITHUB_ENV
 
       # 8. Log Version
       - name: Log version
+        id: log_version
         run: echo "Building version ${{ env.VERSION }}-${{ env.SHORTSHA }}."
 
       # 9. Log in to Docker Hub
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        id: login_dockerhub
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       # 10. Docker build
       - name: Docker Build
+        id: docker_build
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
@@ -71,17 +79,19 @@ jobs:
             ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }}
             ${{ env.IMAGE_NAME }}:latest
         env:
-          IMAGE_NAME: $IMAGE_NAME
+          IMAGE: $IMAGE_NAME
 
       # 11. Container Structure Test
       - name: Run Container Structure Test
-        uses: GoogleContainerTools/container-structure-test-action@v2
+        id: run_tests
+        uses: brpaz/structure-tests-action@v1.1.2
         with:
-          image: ${{ steps.build.outputs.image }}  # Reference the image name from the previous step
-          config: tests.yml
+          image: ${{ steps.docker_build.outputs.image }}  # Reference the image name from the previous step
+          configFile: tests.yml
           
       # 12. Push images if tests pass
       - name: Push Docker images
+        id: push_images
         if: success()  # This ensures this step runs only if the previous test step is successful
         uses: docker/build-push-action@v6
         with:
