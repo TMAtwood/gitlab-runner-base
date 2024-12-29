@@ -1,0 +1,87 @@
+---
+repos:
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0  # Use the latest stable version
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: .*/tests/.*  # Exclude test files from scanning
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0  # Use the latest stable version
+    hooks:
+      - id: check-added-large-files
+        args:
+          - -- enforce-all
+      - id: check-ast
+      - id: check-builtin-literals
+      - id: check-byte-order-marker
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+      - id: destroyed-symlinks
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: forbid-new-submodules
+      - id: forbid-submodules
+      - id: mixed-line-ending
+      - id: name-tests-test
+      - id: no-commit-to-branch
+        args: [--branch, main, --branch, master, --branch, develop]
+      - id: sort-simple-yaml
+      - id: trailing-whitespace
+  - repo: https://github.com/gruntwork-io/pre-commit
+    rev: v0.1.24  # Use the latest stable version
+    hooks:
+      - id: shellcheck
+  - repo: https://github.com/asottile/setup-cfg-fmt
+    rev: v2.7.0  # Use the latest stable version
+    hooks:
+      - id: setup-cfg-fmt
+  - repo: https://github.com/asottile/reorder-python-imports
+    rev: v3.14.0  # Use the latest stable version
+    hooks:
+      - id: reorder-python-imports
+        args: [--py39-plus, --add-import, 'from __future__ import annotations']
+        exclude: (^pre_commit/resources/|testing/resources/python3_hooks_repo/)
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.19.1
+    hooks:
+      - id: pyupgrade
+        args: [--py39-plus]
+  - repo: https://github.com/asottile/add-trailing-comma
+    rev: v3.1.0
+    hooks:
+      - id: add-trailing-comma
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        args: ["--show-error-codes", "--strict", "--explicit-packages-base"]
+        additional_dependencies:
+          - mypy
+          - types-setuptools
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff
+        types_or: [python, pyi, jupyter]
+        args: [--fix]
+      - id: ruff-format
+        types_or: [python, pyi, jupyter]
+  # Dockerfile linting and validation
+  # - repo: https://github.com/hadolint/hadolint
+  #   rev: v2.12.0  # Use the latest stable version
+  #   hooks:
+  #     - id: hadolint
+  #       name: Lint Dockerfiles
+  #       description: Runs hadolint to lint DOckerfiles
+  #       entry: hadolint
+  #       language: system
+  #       types: ["dockerfile"]

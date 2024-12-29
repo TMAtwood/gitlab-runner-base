@@ -37,7 +37,7 @@ jobs:
       - name: Set up Homebrew
         id: install_homebrew
         uses: Homebrew/actions/setup-homebrew@master
-          
+
       # 5. Install GitVersion
       - name: Install GitVersion
         id: install_gitversion
@@ -47,7 +47,7 @@ jobs:
       - name: Install Container Structure Test
         id: install_container_structure_test
         run: brew install container-structure-test
-      
+
       # 7. Get Version and Short SHA
       - name: Get version and short SHA
         id: output_version
@@ -82,7 +82,7 @@ jobs:
           IMAGE: $IMAGE_NAME
 
       # 11. I need to write my own container-structure-test action, as Marketplace options suck.
-      
+
       # 12. Push images if tests pass
       - name: Push Docker images
         id: push_images
@@ -94,4 +94,3 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.SHORTSHA }}
             ${{ env.IMAGE_NAME }}:latest
-        
