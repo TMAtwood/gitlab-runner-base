@@ -32,7 +32,6 @@ LABEL com.tmatwood.project="GitLab Runner Base"
 # ████████     ██      ██  ██ ██  ██  ██       ██  ██  ██   ██ ██   ██ ██ ██   ██ ██   ██ ██      ██           ██
 #  ██  ██      ███████ ██   ████   ████         ████   ██   ██ ██   ██ ██ ██   ██ ██████  ███████ ███████ ███████
 
-ARG APT_KEY_DONT_WARN_IN_DANGEROUS_USAGE=1
 ENV container=docker
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LC_ALL=C
