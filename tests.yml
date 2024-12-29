@@ -1,53 +1,33 @@
 ---
 schemaVersion: 2.0.0
 
-fileContentTests:
-  - name: "Verify sudoers entry for gitlab-runner"
-    path: "/etc/sudoers"
-    expectedContents:
-      - "gitlab-runner ALL=\\(ALL\\) NOPASSWD:ALL"
-  - name: "Verify gitlab-runner user in /etc/passwd"
-    path: "/etc/passwd"
-    expectedContents:
-      - "gitlab-runner:x"
-  - name: "Verify gitlab-runner group in /etc/group"
-    path: "/etc/group"
-    expectedContents:
-      - "gitlab-runner:x"
-
-commandTests:
-  - name: "apt-get upgrade"
-    command: "apt-get"
-    args: ["-qqs", "upgrade"]
-    excludedOutput: [".*Inst.*Security.* | .*Security.*Inst.*"]
-    excludedError: [".*Inst.*Security.* | .*Security.*Inst.*"]
-  - name: "Verify curl installation"
-    command: "which"
-    args: ["curl"]
-    expectedOutput: ["/usr/bin/curl"]
-  - name: "Verify gnupg installation"
-    command: "which"
-    args: ["gitlab-runner"]
-    expectedOutput: ["/usr/bin/gitlab-runner"]
-  - name: "Verify sudo installation"
-    command: "which"
-    args: ["gpg"]
-    expectedOutput: ["/usr/bin/gpg"]
-  - name: "Verify gitlab-runner installation"
-    command: "which"
-    args: ["gitlab-runner"]
-    expectedOutput: ["/usr/bin/gitlab-runner"]
-
 metadataTest:
+  # envVars:
+  #   - key: foo
+  #     value: baz
+  # exposedPorts: ["8080", "2345"]
+  # volumes: ["/test"]
+  entrypoint: []
+  cmd: ["/bin/bash"]
+  workdir: "/home/gitlab-runner"
+  user: "gitlab-runner"
   labels:
-    - key: "org.opencontainers.image.authors"
-      value: "Thomas M. Atwood"
-    - key: "org.opencontainers.image.description"
-      value: "A base image for a GitLab Runner with minimal dependencies installed."
-    - key: "org.opencontainers.image.version"
-      value: "1.0.0"
+  - key: "org.opencontainers.image.authors"
+    value: "Thomas M. Atwood"
+  - key: "org.opencontainers.image.description"
+    value: "A base image for a GitLab Runner with minimal dependencies installed."
+  - key: "org.opencontainers.image.version"
+    value: "1.0.0"
+
+containerRunOptions:
+  user: "gitlab-runner"             # set the --user/-u flag
+  privileged: false       # set the --privileged flag (default: false)
+  allocateTty: false      # set the --tty flag (default: false)
 
 fileExistenceTests:
+  - name: Check if .bashrc exists
+    path: /home/gitlab-runner/.bashrc
+    shouldExist: true
   - name: "Check /etc/sudoers file exists"
     path: "/etc/sudoers"
   - name: "Check /etc/passwd file exists"
@@ -58,3 +38,80 @@ fileExistenceTests:
     path: "/usr/lib/apt/methods/https"
   - name: "gnupg gpg executable exists"
     path: "/usr/bin/gpg"
+  - name: "Homebrew executable exists"
+    path: "/home/linuxbrew/.linuxbrew/bin/brew"
+  - name: "gobrew executable exists"
+    path: "/home/gitlab-runner/.gobrew/bin/gobrew"
+  - name: "NVM script exists"
+    path: "/home/gitlab-runner/.nvm/nvm.sh"
+
+fileContentTests:
+  - name: "Verify sudoers entry for dev"
+    path: "/etc/sudoers"
+    expectedContents:
+      - "dev ALL=\\(ALL\\) NOPASSWD:ALL"
+  - name: "Verify sudoers entry for gitlab-runner"
+    path: "/etc/sudoers"
+    expectedContents:
+      - "gitlab-runner ALL=\\(ALL\\) NOPASSWD:ALL"
+  - name: "Verify dev exists in /etc/passwd"
+    path: "/etc/passwd"
+    expectedContents:
+      - "dev:x"
+  - name: "Verify gitlab-runner user in /etc/passwd"
+    path: "/etc/passwd"
+    expectedContents:
+      - "gitlab-runner:x"
+  - name: "Verify linuxbrew user in /etc/passwd"
+    path: "/etc/passwd"
+    expectedContents:
+      - "linuxbrew:x"
+  - name: "Verify dev group in /etc/group"
+    path: "/etc/group"
+    expectedContents:
+      - "dev:x"
+  - name: "Verify gitlab-runner group in /etc/group"
+    path: "/etc/group"
+    expectedContents:
+      - "gitlab-runner:x"
+  - name: "Verify linuxbrew exists in /etc/group"
+    path: "/etc/group"
+    expectedContents:
+      - "linuxbrew:x"
+
+commandTests:
+  - name: "apt-get upgrade"
+    command: "apt-get"
+    args: ["-qqs", "upgrade"]
+    excludedOutput: [".*Inst.*Security.* | .*Security.*Inst.*"]
+    excludedError: [".*Inst.*Security.* | .*Security.*Inst.*"]
+  - name: "brew installation"
+    command: "which"
+    args: ["brew"]
+    expectedOutput: ["/home/linuxbrew/.linuxbrew/bin/brew"]
+  - name: "git installation"
+    command: "which"
+    args: ["git"]
+    expectedOutput: ["/usr/bin/git"]
+  - name: "Verify curl installation"
+    command: "which"
+    args: ["curl"]
+    expectedOutput: ["/usr/bin/curl"]
+  - name: "Verify gnupg installation"
+    command: "which"
+    args: ["gpg"]
+    expectedOutput: ["/usr/bin/gpg"]
+  - name: "Verify gitlab-runner installation"
+    command: "which"
+    args: ["gitlab-runner"]
+    expectedOutput: ["/usr/bin/gitlab-runner"]
+  # Verify Homebrew installation
+  - name: "Verify Homebrew installation"
+    command: "brew"
+    args: ["--version"]
+    expectedOutput: ["Homebrew 4.4.13-53-g9626df0"]
+  # Verify gobrew installation
+  - name: "Verify gobrew installation"
+    command: "which"
+    args: ["gobrew"]
+    expectedOutput: ["/home/gitlab-runner/.gobrew/bin/gobrew"]
