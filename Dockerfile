@@ -288,9 +288,7 @@ RUN mkdir -p /home/gitlab-runner/.nvm \
     && echo [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" \
     && echo [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" \
     && echo '\nnvm install node' >> /home/gitlab-runner/.bashrc \
-    && echo 'nvm use node' >> /home/gitlab-runner/.bashrc \
     && nvm install node \
-    && nvm use node \
     && node -v \
     && npm -v \
     && npm install -g npm dep-check npm-check newman snyk
@@ -351,6 +349,137 @@ ENV PATH_GITLAB_RUNNER_USER="${PATH}:/home/gitlab-runner/.nvm/bin"
 
 RUN echo "export PATH=${PATH_DEV_USER}" >> /home/dev/.bashrc \
     && echo "export PATH=${PATH_GITLAB_RUNNER_USER}" >> /home/gitlab-runner/.bashrc
+
+
+#  ██  ██      ███████ ██      ██    ██ ██     ██  █████  ██    ██
+# ████████     ██      ██       ██  ██  ██     ██ ██   ██  ██  ██
+#  ██  ██      █████   ██        ████   ██  █  ██ ███████   ████
+# ████████     ██      ██         ██    ██ ███ ██ ██   ██    ██
+#  ██  ██      ██      ███████    ██     ███ ███  ██   ██    ██
+
+WORKDIR /home/root
+USER root
+
+# Install Flyway
+RUN FLYWAY_REPO="https://github.com/flyway/flyway" \
+    && export LATEST_VERSION=$(curl -s https://api.github.com/repos/flyway/flyway/releases/latest | jq -r '.tag_name') \
+    && FLYWAY_VERSION=${LATEST_VERSION##*-} \
+    && echo "Flyway version is $FLYWAY_VERSION." \
+    && wget https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/${FLYWAY_VERSION}/flyway-commandline-${FLYWAY_VERSION}-linux-x64.tar.gz -O flyway.tar.gz | file flyway.tar.gz \
+    && tar -xvzf flyway.tar.gz \
+    && sudo ln -s $(pwd)/flyway-${FLYWAY_VERSION}/flyway /usr/local/bin/flyway \
+    && rm flyway.tar.gz \
+    && flyway -v
+
+
+#  ██  ██       ██████  ██████  ██████  ███████  ██████  ██
+# ████████     ██      ██    ██ ██   ██ ██      ██    ██ ██
+#  ██  ██      ██      ██    ██ ██   ██ █████   ██    ██ ██
+# ████████     ██      ██    ██ ██   ██ ██      ██ ▄▄ ██ ██
+#  ██  ██       ██████  ██████  ██████  ███████  ██████  ███████
+#                                                  ▀▀
+
+WORKDIR /home/root
+USER root
+
+RUN CODEQL_REPO="https://github.com/github/codeql-action" \
+    && DOWNLOAD_DIR="/home/root" \
+    && export LATEST_VERSION=$(curl -sL https://api.github.com/repos/github/codeql-action/releases/latest | jq -r '.tag_name') \
+    && CODEQL_VERSION=${LATEST_VERSION##*-} \
+    && echo "CodeQL version is $CODEQL_VERSION." \
+    && curl -sL https://github.com/github/codeql-action/releases/download/codeql-bundle-${CODEQL_VERSION}/codeql-bundle-linux64.tar.gz -o codeql-bundle-linux64.tar.gz \
+    && tar -xvf codeql-bundle-linux64.tar.gz \
+    && mv codeql /usr/local/bin/codeql \
+    && ln -s /usr/local/bin/codeql/codeql /usr/bin/codeql \
+    && rm codeql-bundle-linux64.tar.gz \
+    && codeql --version
+
+
+#  ██  ██      ███████ ██████  ██   ██ ███    ███  █████  ███    ██
+# ████████     ██      ██   ██ ██  ██  ████  ████ ██   ██ ████   ██
+#  ██  ██      ███████ ██   ██ █████   ██ ████ ██ ███████ ██ ██  ██
+# ████████          ██ ██   ██ ██  ██  ██  ██  ██ ██   ██ ██  ██ ██
+#  ██  ██      ███████ ██████  ██   ██ ██      ██ ██   ██ ██   ████
+
+WORKDIR /home/dev
+USER dev
+
+RUN curl -s "https://get.sdkman.io" | bash \
+    && bash -c "source $HOME/.sdkman/bin/sdkman-init.sh && sdk install gradle"
+
+WORKDIR /home/gitlab-runner
+USER gitlab-runner
+
+RUN curl -s "https://get.sdkman.io" | bash \
+    && bash -c "source $HOME/.sdkman/bin/sdkman-init.sh && sdk install gradle"
+
+
+#  ██  ██      ██████   ██████   ██████ ██   ██ ███████ ██████
+# ████████     ██   ██ ██    ██ ██      ██  ██  ██      ██   ██
+#  ██  ██      ██   ██ ██    ██ ██      █████   █████   ██████
+# ████████     ██   ██ ██    ██ ██      ██  ██  ██      ██   ██
+#  ██  ██      ██████   ██████   ██████ ██   ██ ███████ ██   ██
+
+WORKDIR /home/root
+USER root
+
+# Install Docker tooling within WSL2 instead of using Docker-Desktop
+# Adds docker apt key
+RUN mkdir -p /etc/apt/keyrings \
+    && mkdir -p /root/.docker \
+    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+    # Adds docker apt repository
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    # Refreshes apt repos
+    && apt-get update \
+    # Installs Docker CE
+    && apt-get install -y --no-install-recommends \
+        containerd.io \
+        docker-buildx-plugin \
+        docker-ce \
+        docker-ce-cli \
+        docker-compose-plugin \
+    # Finds the latest version
+    && switch_version=$(curl -fsSL -o /dev/null -w "%{url_effective}" https://github.com/docker/compose-switch/releases/latest | xargs basename) \
+    # # Downloads the binary
+    && curl -fL -o /usr/local/bin/docker-compose "https://github.com/docker/compose-switch/releases/download/${switch_version}/docker-compose-linux-$(dpkg --print-architecture)" \
+    # # Finds the latest version
+    && wincred_version=$(curl -fsSL -o /dev/null -w "%{url_effective}" https://github.com/docker/docker-credential-helpers/releases/latest | xargs basename) \
+    # # Downloads and extracts the .exe
+    && curl -fL -o /usr/local/bin/docker-credential-wincred.exe "https://github.com/docker/docker-credential-helpers/releases/download/${wincred_version}/docker-credential-wincred-${wincred_version}.windows-$(dpkg --print-architecture).exe"\
+    # # Assigns execution permission to it
+    && chmod +x /usr/local/bin/docker-credential-wincred.exe \
+    # # Assigns execution permission to it
+    && chmod +x /usr/local/bin/docker-compose \
+    && mkdir -p /home/dev/.docker \
+    && echo '{' >> /home/dev/.docker/config.json \
+    && echo '    "credsStore": "wincred.exe"' >> /home/dev/.docker/config.json \
+    && echo '}' >> /home/dev/.docker/config.json \
+    && mkdir -p /home/gitlab-runner/.docker \
+    && echo '{' >> /home/gitlab-runner/.docker/config.json \
+    && echo '    "credsStore": "wincred.exe"' >> /home/gitlab-runner/.docker/config.json \
+    && echo '}' >> /home/gitlab-runner/.docker/config.json \
+    && echo '{' >> /etc/docker/daemon.json \
+    && echo '    "features": {' >> /etc/docker/daemon.json \
+    && echo '        "buildkit": true' >> /etc/docker/daemon.json \
+    && echo '    }' >> /etc/docker/daemon.json \
+    && echo '}' >> /etc/docker/daemon.json \
+    # Download the latest Minikube
+    && curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 \
+    # Make it executable
+    && chmod +x ./minikube \
+    # Move it to your user's executable PATH
+    && mv ./minikube /usr/local/bin/ \
+    # Set the driver version to Docker
+    && minikube config set driver docker \
+    # Download the latest Kubectl
+    && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+    # Make it executable
+    && chmod +x ./kubectl \
+    # Move it to your user's executable PATH
+    && mv ./kubectl /usr/local/bin/ \
+    && chmod +x ~/.docker
+
 
 # Switch to the gitlab-runner user
 WORKDIR /home/gitlab-runner
