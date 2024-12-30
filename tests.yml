@@ -30,20 +30,49 @@ fileExistenceTests:
     shouldExist: true
   - name: "Check /etc/sudoers file exists"
     path: "/etc/sudoers"
+    shouldExist: true
   - name: "Check /etc/passwd file exists"
     path: "/etc/passwd"
+    shouldExist: true
   - name: "ca-certificates file exists"
     path: "/etc/ssl/certs/ca-certificates.crt"
+    shouldExist: true
   - name: "apt-transport-https method exists"
     path: "/usr/lib/apt/methods/https"
+    shouldExist: true
   - name: "gnupg gpg executable exists"
     path: "/usr/bin/gpg"
+    shouldExist: true
   - name: "Homebrew executable exists"
     path: "/home/linuxbrew/.linuxbrew/bin/brew"
+    shouldExist: true
   - name: "gobrew executable exists"
     path: "/home/gitlab-runner/.gobrew/bin/gobrew"
+    shouldExist: true
   - name: "NVM script exists"
     path: "/home/gitlab-runner/.nvm/nvm.sh"
+    shouldExist: true
+  - name: "CodeQL executable exists"
+    path: "/usr/local/bin/codeql"
+    shouldExist: true
+  - name: "Docker executable exists"
+    path: "/usr/bin/docker"
+    shouldExist: true
+  - name: "Docker Compose executable exists"
+    path: "/usr/local/bin/docker-compose"
+    shouldExist: true
+  - name: "Flyway executable exists"
+    path: "/usr/local/bin/flyway"
+    shouldExist: true
+  - name: "SDKMAN installation script exists"
+    path: "/home/gitlab-runner/.sdkman/bin/sdkman-init.sh"
+    shouldExist: true
+  - name: "Gradle executable exists"
+    path: "/home/gitlab-runner/.sdkman/candidates/gradle/current/bin/gradle"
+    shouldExist: true
+  - name: "Flyway executable exists"
+    path: "/usr/local/bin/flyway"
+    shouldExist: true
 
 fileContentTests:
   - name: "Verify sudoers entry for dev"
@@ -105,13 +134,27 @@ commandTests:
     command: "which"
     args: ["gitlab-runner"]
     expectedOutput: ["/usr/bin/gitlab-runner"]
-  # Verify Homebrew installation
   - name: "Verify Homebrew installation"
     command: "brew"
     args: ["--version"]
-    expectedOutput: ["Homebrew 4.4.13-53-g9626df0"]
-  # Verify gobrew installation
+    expectedOutput: ["Homebrew 4.4.14-4-gf756ea4"]
   - name: "Verify gobrew installation"
     command: "which"
     args: ["gobrew"]
     expectedOutput: ["/home/gitlab-runner/.gobrew/bin/gobrew"]
+  - name: "Verify CodeQL installation"
+    command: "which"
+    args: ["codeql"]
+    expectedOutput: ["/usr/bin/codeql"]
+  - name: "Verify SDKMAN installation"
+    command: "bash"
+    args: ["-c", "source /home/gitlab-runner/.sdkman/bin/sdkman-init.sh && sdk version"]
+    expectedOutput: ["SDKMAN"]
+  - name: "Verify docker installation"
+    command: "which"
+    args: ["docker"]
+    expectedOutput: ["/usr/bin/docker"]
+  - name: "Verify docker-compose installation"
+    command: "which"
+    args: ["docker-compose"]
+    expectedOutput: ["/usr/local/bin/docker-compose"]
